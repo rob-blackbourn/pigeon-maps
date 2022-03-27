@@ -61,14 +61,6 @@ export const requestAnimationFrame = (callback: (timestamp: number) => void): nu
 export const cancelAnimationFrame = (animFrame: number | null) =>
   hasWindow && animFrame ? (window.cancelAnimationFrame || window.clearTimeout)(animFrame) : false
 
-// minLat, maxLat, minLng, maxLng
-export const absoluteMinMax = [
-  tile2lat(Math.pow(2, 10), 10),
-  tile2lat(0, 10),
-  tile2lng(0, 10),
-  tile2lng(Math.pow(2, 10), 10),
-] as MinMaxBounds
-
 export const pixelToLatLng = (
   pixel: Point,
   center: Point,
