@@ -9,111 +9,38 @@ import {
   MoveEvent,
   Point,
   Tile,
-  TileComponent,
   TileValues,
   WAdd,
   WarningType,
   WRem,
 } from '../types'
 import { osm } from '../providers'
-
-const ANIMATION_TIME = 300
-const DIAGONAL_THROW_TIME = 1500
-const SCROLL_PIXELS_FOR_ZOOM_LEVEL = 150
-const MIN_DRAG_FOR_THROW = 40
-const CLICK_TOLERANCE = 2
-const DOUBLE_CLICK_DELAY = 300
-const DEBOUNCE_DELAY = 60
-const PINCH_RELEASE_THROW_DELAY = 300
-const WARNING_DISPLAY_TIMEOUT = 300
-
-const NOOP = () => true
-
-// https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
-const lng2tile = (lon: number, zoom: number): number => ((lon + 180) / 360) * Math.pow(2, zoom)
-const lat2tile = (lat: number, zoom: number): number =>
-  ((1 - Math.log(Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180)) / Math.PI) / 2) *
-  Math.pow(2, zoom)
-
-function tile2lng(x: number, z: number): number {
-  return (x / Math.pow(2, z)) * 360 - 180
-}
-
-function tile2lat(y: number, z: number): number {
-  const n = Math.PI - (2 * Math.PI * y) / Math.pow(2, z)
-  return (180 / Math.PI) * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)))
-}
-
-function getMousePixel(dom: HTMLElement, event: Pick<MouseEvent, 'clientX' | 'clientY'>): Point {
-  const parent = parentPosition(dom)
-  return [event.clientX - parent.x, event.clientY - parent.y]
-}
-
-function easeOutQuad(t: number): number {
-  return t * (2 - t)
-}
-
-// minLat, maxLat, minLng, maxLng
-const absoluteMinMax = [
-  tile2lat(Math.pow(2, 10), 10),
-  tile2lat(0, 10),
-  tile2lng(0, 10),
-  tile2lng(Math.pow(2, 10), 10),
-] as MinMaxBounds
-
-const hasWindow = typeof window !== 'undefined'
-
-const performanceNow =
-  hasWindow && window.performance && window.performance.now
-    ? () => window.performance.now()
-    : (() => {
-        const timeStart = new Date().getTime()
-        return () => new Date().getTime() - timeStart
-      })()
-
-const requestAnimationFrame = (callback: (timestamp: number) => void): number | null => {
-  if (hasWindow) {
-    return (window.requestAnimationFrame || window.setTimeout)(callback)
-  } else {
-    callback(new Date().getTime())
-    return null
-  }
-}
-const cancelAnimationFrame = (animFrame: number | null) =>
-  hasWindow && animFrame ? (window.cancelAnimationFrame || window.clearTimeout)(animFrame) : false
-
-function srcSet(
-  dprs: number[],
-  url: (x: number, y: number, z: number, dpr?: number) => string,
-  x: number,
-  y: number,
-  z: number
-): string {
-  if (!dprs || dprs.length === 0) {
-    return ''
-  }
-  return dprs.map((dpr) => url(x, y, z, dpr) + (dpr === 1 ? '' : ` ${dpr}x`)).join(', ')
-}
-
-const ImgTile: TileComponent = ({ tile, tileLoaded }) => (
-  <img
-    src={tile.url}
-    srcSet={tile.srcSet}
-    width={tile.width}
-    height={tile.height}
-    loading={'lazy'}
-    onLoad={tileLoaded}
-    alt={''}
-    style={{
-      position: 'absolute',
-      left: tile.left,
-      top: tile.top,
-      willChange: 'transform',
-      transformOrigin: 'top left',
-      opacity: 1,
-    }}
-  />
-)
+import {
+  ANIMATION_TIME,
+  DIAGONAL_THROW_TIME,
+  SCROLL_PIXELS_FOR_ZOOM_LEVEL,
+  MIN_DRAG_FOR_THROW,
+  CLICK_TOLERANCE,
+  DOUBLE_CLICK_DELAY,
+  DEBOUNCE_DELAY,
+  PINCH_RELEASE_THROW_DELAY,
+  WARNING_DISPLAY_TIMEOUT,
+} from './mapConstants'
+import {
+  NOOP,
+  lng2tile,
+  lat2tile,
+  tile2lat,
+  tile2lng,
+  getMousePixel,
+  easeOutQuad,
+  srcSet,
+  performanceNow,
+  requestAnimationFrame,
+  cancelAnimationFrame,
+  absoluteMinMax,
+} from './mapUtils'
+import { ImgTile } from './ImageTile'
 
 export class Map extends Component<MapProps, MapReactState> {
   static defaultProps = {

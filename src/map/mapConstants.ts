@@ -1,0 +1,9 @@
+export const ANIMATION_TIME = 300
+export const DIAGONAL_THROW_TIME = 1500
+export const SCROLL_PIXELS_FOR_ZOOM_LEVEL = 150
+export const MIN_DRAG_FOR_THROW = 40
+export const CLICK_TOLERANCE = 2
+export const DOUBLE_CLICK_DELAY = 300
+export const DEBOUNCE_DELAY = 60
+export const PINCH_RELEASE_THROW_DELAY = 300
+export const WARNING_DISPLAY_TIMEOUT = 300
