@@ -1,5 +1,7 @@
 import { parentPosition } from '../utils'
-import { Point, MinMaxBounds } from '../types'
+import { Point } from '../types'
+import { absoluteMinMax
+ } from './minMaxBoundsCache'
 export const NOOP = () => true
 
 // https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
