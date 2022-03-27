@@ -141,5 +141,5 @@ export interface PigeonProps {
   // pigeon functions
   latLngToPixel?: (latLng: Point) => Point
   pixelToLatLng?: (pixel: Point) => Point
-  setCenterZoom?: (center: Point | null, zoom: number, zoomAround?: Point | null, animationDuration?: number) => void
+  setCenterZoom?: (center: Point, zoom: number) => void
 }

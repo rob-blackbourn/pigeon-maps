@@ -263,7 +263,7 @@ export class Map extends Component<MapProps, MapReactState> {
   }
 
   setCenterZoomTarget = (
-    center: Point | null,
+    center: Point,
     zoom: number,
     fromProps: boolean,
     zoomAround: Point | null,
@@ -309,10 +309,6 @@ export class Map extends Component<MapProps, MapReactState> {
         this.setCenterZoom(center || this.state.center, zoom, fromProps)
       }
     }
-  }
-
-  setCenterZoomForChildren = (center: Point | null, zoom: number): void => {
-    this.setCenterZoomTarget(center || this.state.center, zoom || this.state.zoom, true, null, ANIMATION_TIME)
   }
 
   distanceInScreens = (centerTarget: Point, zoomTarget: number, center: Point, zoom: number): number => {
@@ -389,13 +385,13 @@ export class Map extends Component<MapProps, MapReactState> {
     }
   }
 
-  limitCenterAtZoom = (center?: Point | null, zoom?: number | null): Point => {
+  limitCenterAtZoom = (center: Point, zoom: number): Point => {
     // [minLat, maxLat, minLng, maxLng]
-    const minMax = this.getBoundsMinMax(zoom || this.state.zoom)
+    const minMax = this.getBoundsMinMax(zoom)
 
     return [
-      Math.max(Math.min(!center || isNaN(center[0]) ? this.state.center[0] : center[0], minMax[1]), minMax[0]),
-      Math.max(Math.min(!center || isNaN(center[1]) ? this.state.center[1] : center[1], minMax[3]), minMax[2]),
+      Math.max(Math.min(center[0], minMax[1]), minMax[0]),
+      Math.max(Math.min(center[1], minMax[3]), minMax[2]),
     ] as Point
   }
 
@@ -408,7 +404,7 @@ export class Map extends Component<MapProps, MapReactState> {
   }
 
   // main logic when changing coordinates
-  setCenterZoom = (center: Point | null, zoom: number | null, animationEnded: boolean): void => {
+  setCenterZoom = (center: Point, zoom: number, animationEnded: boolean): void => {
     const limitedCenter = this.limitCenterAtZoom(center, zoom)
 
     if (zoom && Math.round(this.state.zoom) !== Math.round(zoom)) {
@@ -543,7 +539,7 @@ export class Map extends Component<MapProps, MapReactState> {
               this.state.zoom + this.state.zoomDelta
             )
             this.setCenterZoomTarget(
-              null,
+              this.state.center,
               Math.max(this.props.minZoom, Math.min(this.state.zoom + 1, this.props.maxZoom)),
               false,
               latLngNow,
@@ -721,7 +717,7 @@ export class Map extends Component<MapProps, MapReactState> {
             this.state.zoom + this.state.zoomDelta
           )
           this.setCenterZoomTarget(
-            null,
+            this.state.center,
             Math.max(this.props.minZoom, Math.min(this.state.zoom + 1, this.props.maxZoom)),
             false,
             latLngNow,
@@ -946,7 +942,7 @@ export class Map extends Component<MapProps, MapReactState> {
     }
     zoomTarget = Math.max(minZoom, Math.min(zoomTarget, maxZoom))
 
-    this.setCenterZoomTarget(null, zoomTarget, false, latLngNow, ANIMATION_TIME)
+    this.setCenterZoomTarget(this.state.center, zoomTarget, false, latLngNow, ANIMATION_TIME)
   }
 
   // tools
@@ -968,7 +964,7 @@ export class Map extends Component<MapProps, MapReactState> {
     ] as Point
   }
 
-  latLngToPixel = (latLng: Point, center = this.state.center, zoom = this.state.zoom + this.state.zoomDelta): Point => {
+  latLngToPixel = (latLng: Point, center: Point, zoom: number): Point => {
     const { width, height, pixelDelta } = this.state
 
     const tileCenterX = lng2tile(center[1], zoom)
@@ -1202,7 +1198,7 @@ export class Map extends Component<MapProps, MapReactState> {
           this.latLngToPixel(pixel, this.state.center, this.state.zoom + this.state.zoomDelta),
         pixelToLatLng: (pixel: Point): Point =>
           this.pixelToLatLng(pixel, this.state.center, this.state.zoom + this.state.zoomDelta),
-        setCenterZoom: this.setCenterZoomForChildren,
+        setCenterZoom: (center: Point, zoom: number): void => this.setCenterZoomTarget(center, zoom, true, null, ANIMATION_TIME),
         mapProps: this.props,
         mapState,
       })

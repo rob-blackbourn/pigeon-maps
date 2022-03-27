@@ -6,7 +6,7 @@ const nodeEnv = process.env.NODE_ENV || 'development'
 const isProd = nodeEnv === 'production'
 
 var config = {
-  devtool: isProd ? 'hidden-source-map' : 'cheap-eval-source-map',
+  devtool: isProd ? 'hidden-source-map' : 'source-map',
   context: path.join(__dirname, './demo'),
   entry: {
     vendor: ['react', 'react-dom'],
@@ -36,7 +36,7 @@ var config = {
   },
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx'],
-    modules: [path.resolve('./demo'), 'node_modules']
+    modules: [path.resolve('./demo'), 'node_modules'],
   },
   plugins: [],
   devServer: {
