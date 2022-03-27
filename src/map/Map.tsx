@@ -289,7 +289,8 @@ export class Map extends Component<MapProps, MapReactState> {
           [this._lastCenter[0], this._lastCenter[1]],
           this._lastZoom,
           width,
-          height
+          height,
+          this.props.limitBounds === 'center'
         )
         this._zoomStart = this._lastZoom
         this.onAnimationStart()
@@ -375,9 +376,15 @@ export class Map extends Component<MapProps, MapReactState> {
     }
   }
 
-  limitCenterAtZoom = (center: Point, zoom: number, width: number, height: number): Point => {
+  limitCenterAtZoom = (
+    center: Point,
+    zoom: number,
+    width: number,
+    height: number,
+    isLimitBoundsCenter: boolean
+  ): Point => {
     // [minLat, maxLat, minLng, maxLng]
-    const minMax = this.props.limitBounds === 'center' ? absoluteMinMax : this.getBoundsMinMax(zoom, width, height)
+    const minMax = this.getBoundsMinMax(zoom, width, height, isLimitBoundsCenter)
 
     return [
       Math.max(Math.min(center[0], minMax[1]), minMax[0]),
@@ -396,7 +403,7 @@ export class Map extends Component<MapProps, MapReactState> {
   // main logic when changing coordinates
   setCenterZoom = (center: Point, newZoom: number, animationEnded: boolean): void => {
     const { width, height } = this.state
-    const limitedCenter = this.limitCenterAtZoom(center, newZoom, width, height)
+    const limitedCenter = this.limitCenterAtZoom(center, newZoom, width, height, this.props.limitBounds === 'center')
 
     if (newZoom && Math.round(this.state.zoom) !== Math.round(newZoom)) {
       const tileValues = this.tileValues(this.state)
@@ -444,7 +451,11 @@ export class Map extends Component<MapProps, MapReactState> {
     }
   }
 
-  getBoundsMinMax = (zoom: number, width: number, height: number): MinMaxBounds => {
+  getBoundsMinMax = (zoom: number, width: number, height: number, isLimitBoundsCenter: boolean): MinMaxBounds => {
+    if (isLimitBoundsCenter) {
+      return absoluteMinMax
+    }
+
     if (
       this._minMaxCache &&
       this._minMaxCache[0] === zoom &&
@@ -849,7 +860,7 @@ export class Map extends Component<MapProps, MapReactState> {
     )
 
     return {
-      center: this.limitCenterAtZoom([lat, lng], zoom + zoomDelta, width, height),
+      center: this.limitCenterAtZoom([lat, lng], zoom + zoomDelta, width, height, this.props.limitBounds === 'center'),
       zoom: zoom + zoomDelta,
     }
   }
@@ -963,7 +974,7 @@ export class Map extends Component<MapProps, MapReactState> {
       pixelDelta
     )
 
-    return this.limitCenterAtZoom(newCenter, newZoom, width, height)
+    return this.limitCenterAtZoom(newCenter, newZoom, width, height, this.props.limitBounds === 'center')
   }
 
   // ref
