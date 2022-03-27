@@ -10,9 +10,7 @@ import {
   Point,
   Tile,
   TileValues,
-  WAdd,
   WarningType,
-  WRem,
 } from '../types'
 import { osm } from '../providers'
 import {
@@ -172,39 +170,36 @@ export class Map extends Component<MapProps, MapReactState> {
     return false
   }
 
-  wa: WAdd = (...args: Parameters<WAdd>) => window.addEventListener(...args)
-  wr: WRem = (...args: Parameters<WRem>) => window.removeEventListener(...args)
-
   bindMouseEvents = (): void => {
-    this.wa('mousedown', this.handleMouseDown)
-    this.wa('mouseup', this.handleMouseUp)
-    this.wa('mousemove', this.handleMouseMove)
+    window.addEventListener('mousedown', this.handleMouseDown)
+    window.addEventListener('mouseup', this.handleMouseUp)
+    window.addEventListener('mousemove', this.handleMouseMove)
   }
 
   bindTouchEvents = (): void => {
-    this.wa('touchstart', this.handleTouchStart, { passive: false })
-    this.wa('touchmove', this.handleTouchMove, { passive: false })
-    this.wa('touchend', this.handleTouchEnd, { passive: false })
+    window.addEventListener('touchstart', this.handleTouchStart, { passive: false })
+    window.addEventListener('touchmove', this.handleTouchMove, { passive: false })
+    window.addEventListener('touchend', this.handleTouchEnd, { passive: false })
   }
 
   unbindMouseEvents = (): void => {
-    this.wr('mousedown', this.handleMouseDown)
-    this.wr('mouseup', this.handleMouseUp)
-    this.wr('mousemove', this.handleMouseMove)
+    window.removeEventListener('mousedown', this.handleMouseDown)
+    window.removeEventListener('mouseup', this.handleMouseUp)
+    window.removeEventListener('mousemove', this.handleMouseMove)
   }
 
   unbindTouchEvents = (): void => {
-    this.wr('touchstart', this.handleTouchStart)
-    this.wr('touchmove', this.handleTouchMove)
-    this.wr('touchend', this.handleTouchEnd)
+    window.removeEventListener('touchstart', this.handleTouchStart)
+    window.removeEventListener('touchmove', this.handleTouchMove)
+    window.removeEventListener('touchend', this.handleTouchEnd)
   }
 
   bindResizeEvent = (): void => {
-    this.wa('resize', this.updateWidthHeight)
+    window.addEventListener('resize', this.updateWidthHeight)
   }
 
   unbindResizeEvent = (): void => {
-    this.wr('resize', this.updateWidthHeight)
+    window.removeEventListener('resize', this.updateWidthHeight)
   }
 
   bindWheelEvent = (): void => {

@@ -68,7 +68,7 @@ export interface MapProps {
 export type TileComponent = (props: TileComponentProps) => JSX.Element
 
 export interface TileComponentProps {
-  tile: Tile,
+  tile: Tile
   tileLoaded: () => void
 }
 
@@ -98,9 +98,6 @@ export interface TileValues {
 }
 
 export type WarningType = 'fingers' | 'wheel'
-
-export type WAdd = typeof window.addEventListener
-export type WRem = typeof window.removeEventListener
 
 export interface MoveEvent {
   timestamp: number
