@@ -285,7 +285,12 @@ export class Map extends Component<MapProps, MapReactState> {
         this._zoomStart = zoomStep
       } else {
         this._isAnimating = true
-        this._centerStart = this.limitCenterAtZoom([this._lastCenter[0], this._lastCenter[1]], this._lastZoom)
+        this._centerStart = this.limitCenterAtZoom(
+          [this._lastCenter[0], this._lastCenter[1]],
+          this._lastZoom,
+          width,
+          height
+        )
         this._zoomStart = this._lastZoom
         this.onAnimationStart()
       }
@@ -370,9 +375,9 @@ export class Map extends Component<MapProps, MapReactState> {
     }
   }
 
-  limitCenterAtZoom = (center: Point, zoom: number): Point => {
+  limitCenterAtZoom = (center: Point, zoom: number, width: number, height: number): Point => {
     // [minLat, maxLat, minLng, maxLng]
-    const minMax = this.getBoundsMinMax(zoom)
+    const minMax = this.props.limitBounds === 'center' ? absoluteMinMax : this.getBoundsMinMax(zoom, width, height)
 
     return [
       Math.max(Math.min(center[0], minMax[1]), minMax[0]),
@@ -389,16 +394,17 @@ export class Map extends Component<MapProps, MapReactState> {
   }
 
   // main logic when changing coordinates
-  setCenterZoom = (center: Point, zoom: number, animationEnded: boolean): void => {
-    const limitedCenter = this.limitCenterAtZoom(center, zoom)
+  setCenterZoom = (center: Point, newZoom: number, animationEnded: boolean): void => {
+    const { width, height } = this.state
+    const limitedCenter = this.limitCenterAtZoom(center, newZoom, width, height)
 
-    if (zoom && Math.round(this.state.zoom) !== Math.round(zoom)) {
+    if (newZoom && Math.round(this.state.zoom) !== Math.round(newZoom)) {
       const tileValues = this.tileValues(this.state)
       const nextValues = this.tileValues({
         center: limitedCenter,
-        zoom,
-        width: this.state.width,
-        height: this.state.height,
+        zoom: newZoom,
+        width: width,
+        height: height,
       })
       const oldTiles = this.state.oldTiles
 
@@ -421,30 +427,24 @@ export class Map extends Component<MapProps, MapReactState> {
       this._loadTracker = loadTracker
     }
 
-    this.setState({ center: limitedCenter, zoom: zoom || this.state.zoom }, NOOP)
+    this.setState({ center: limitedCenter, zoom: newZoom || this.state.zoom }, NOOP)
 
     const maybeZoom = this.props.zoom ? this.props.zoom : this._lastZoom
     const maybeCenter = this.props.center ? this.props.center : this._lastCenter
     if (
-      zoom &&
+      newZoom &&
       (animationEnded ||
-        Math.abs(maybeZoom - zoom) > 0.001 ||
+        Math.abs(maybeZoom - newZoom) > 0.001 ||
         Math.abs(maybeCenter[0] - limitedCenter[0]) > 0.00001 ||
         Math.abs(maybeCenter[1] - limitedCenter[1]) > 0.00001)
     ) {
-      this._lastZoom = zoom
+      this._lastZoom = newZoom
       this._lastCenter = [...limitedCenter]
-      this.syncToProps(limitedCenter, zoom)
+      this.syncToProps(limitedCenter, newZoom)
     }
   }
 
-  getBoundsMinMax = (zoom: number): MinMaxBounds => {
-    if (this.props.limitBounds === 'center') {
-      return absoluteMinMax
-    }
-
-    const { width, height } = this.state
-
+  getBoundsMinMax = (zoom: number, width: number, height: number): MinMaxBounds => {
     if (
       this._minMaxCache &&
       this._minMaxCache[0] === zoom &&
@@ -829,7 +829,7 @@ export class Map extends Component<MapProps, MapReactState> {
   }
 
   sendDeltaChange = () => {
-    const { center, zoom, pixelDelta, zoomDelta } = this.state
+    const { center, zoom, pixelDelta, zoomDelta, width, height } = this.state
 
     let lat = center[0]
     let lng = center[1]
@@ -849,7 +849,7 @@ export class Map extends Component<MapProps, MapReactState> {
     )
 
     return {
-      center: this.limitCenterAtZoom([lat, lng], zoom + zoomDelta),
+      center: this.limitCenterAtZoom([lat, lng], zoom + zoomDelta, width, height),
       zoom: zoom + zoomDelta,
     }
   }
@@ -963,7 +963,7 @@ export class Map extends Component<MapProps, MapReactState> {
       pixelDelta
     )
 
-    return this.limitCenterAtZoom(newCenter, newZoom)
+    return this.limitCenterAtZoom(newCenter, newZoom, width, height)
   }
 
   // ref
