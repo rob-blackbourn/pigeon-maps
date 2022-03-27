@@ -139,7 +139,7 @@ export interface PigeonProps {
   mapProps?: MapProps
 
   // pigeon functions
-  latLngToPixel?: (latLng: Point, center?: Point, zoom?: number) => Point
-  pixelToLatLng?: (pixel: Point, center?: Point, zoom?: number) => Point
+  latLngToPixel?: (latLng: Point) => Point
+  pixelToLatLng?: (pixel: Point) => Point
   setCenterZoom?: (center: Point | null, zoom: number, zoomAround?: Point | null, animationDuration?: number) => void
 }
